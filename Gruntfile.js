@@ -28,6 +28,17 @@ module.exports = function (grunt) {
       dist: 'www'
     },
 
+    injector: {
+      options: {
+        addRootSlash: false,
+        ignorePath: 'app/'
+      },
+      local_dependencies: {
+        files: {
+          '<%= yeoman.app %>/index.html': ['<%= yeoman.app %>/<%= yeoman.scripts %>/**/*.js'],
+        }
+      }
+    },
     // Environment Variables for Angular App
     // This creates an Angular Module that can be injected via ENV
     // Add any desired constants to the ENV objects below.
@@ -69,7 +80,7 @@ module.exports = function (grunt) {
       },
       js: {
         files: ['<%= yeoman.app %>/<%= yeoman.scripts %>/**/*.js'],
-        tasks: ['newer:copy:app', 'newer:jshint:all']
+        tasks: ['injector', 'newer:copy:app', 'newer:jshint:all']
       },
       compass: {
         files: ['<%= yeoman.app %>/<%= yeoman.styles %>/**/*.{scss,sass}'],
@@ -495,6 +506,7 @@ module.exports = function (grunt) {
 
   grunt.registerTask('test', [
     'wiredep',
+    'injector',
     'clean',
     'concurrent:test',
     'autoprefixer',
@@ -526,6 +538,7 @@ module.exports = function (grunt) {
     'clean',
     'ngconstant:development',
     'wiredep',
+    'injector',
     'concurrent:server',
     'autoprefixer',
     'newer:copy:app',
@@ -537,6 +550,7 @@ module.exports = function (grunt) {
     'clean',
     'ngconstant:production',
     'wiredep',
+    'injector',
     'useminPrepare',
     'concurrent:dist',
     'autoprefixer',
@@ -556,6 +570,7 @@ module.exports = function (grunt) {
 
   grunt.registerTask('default', [
     'wiredep',
+    'injector',
     'newer:jshint',
     'karma:continuous',
     'compress'
