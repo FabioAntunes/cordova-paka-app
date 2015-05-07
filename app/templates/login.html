@@ -1,14 +1,29 @@
-<ion-view view-title="Login">
+<ion-view view-title="Login" hide-nav-bar="true" class="login-view">
   <ion-content>
+    <div class="row">
+      <div class="col text-center">
+        <h1 class="padding">Paka</h1>
+        <figure class="padding">
+          <img src="images/money.svg" alt="Paka">
+        </figure>
+        <p>
+          Expense manager application
+        </p>
+      </div>
+    </div>
     <form ng-submit="doLogin()">
       <div class="list">
-        <label class="item item-input">
-          <span class="input-label">Username</span>
-          <input type="text" ng-model="user.email">
+        <label class="item item-input item-floating-label">
+          <span class="input-label">Name</span>
+          <input type="text" ng-model="user.name" placeholder="Name">
         </label>
-        <label class="item item-input">
+        <label class="item item-input item-floating-label">
+          <span class="input-label">Username</span>
+          <input type="text" ng-model="user.email" placeholder="Username">
+        </label>
+        <label class="item item-input item-floating-label">
           <span class="input-label">Password</span>
-          <input type="password" ng-model="user.password">
+          <input type="password" ng-model="user.password" placeholder="Password">
         </label>
         <label class="item">
           <button class="button button-block button-positive" type="submit">Log in</button>

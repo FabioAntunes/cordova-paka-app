@@ -52,8 +52,7 @@ angular.module('routes', [])
 })
 .run(['$state', '$rootScope', function($state, $rootScope) {
     $rootScope.$on('$stateChangeStart', function(e, toState, toParams, fromState, fromParams) {
-        console.log(toState);
-
+      
         if (toState.name !== 'app.login' && true) {
           // If logged out and transitioning to a logged in page:
           e.preventDefault();

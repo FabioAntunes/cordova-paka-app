@@ -1,0 +1,23 @@
+.login-view{
+	background-color: $balanced;
+	&, & h1{
+		color: #ffffff;		
+	}
+
+	h1{
+		margin: 20px 0 10px;
+		font-size: 50px;
+	}
+
+	p {
+		font-weight: 900;
+	}
+
+	figure img{
+		width: 50%;
+	}
+
+	& .list{
+		background-color: #ffffff;
+	}
+}
