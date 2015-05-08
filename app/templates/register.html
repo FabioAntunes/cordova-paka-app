@@ -1,4 +1,4 @@
-<ion-view view-title="Login">
+<ion-view view-title="Register">
   <ion-content>
     <div class="row">
       <div class="col text-center">
@@ -12,6 +12,10 @@
         <form ng-submit="doLogin()">
           <div class="list">
             <label class="item item-input item-floating-label">
+              <span class="input-label">Name</span>
+              <input type="text" ng-model="user.name" placeholder="Name">
+            </label>
+            <label class="item item-input item-floating-label">
               <span class="input-label">Username</span>
               <input type="text" ng-model="user.email" placeholder="Username">
             </label>
@@ -20,7 +24,7 @@
               <input type="password" ng-model="user.password" placeholder="Password">
             </label>
             <label class="item">
-              <button class="button button-block button-positive" type="submit">Log in</button>
+              <button class="button button-block button-positive" type="submit">Register</button>
             </label>
           </div>
         </form>

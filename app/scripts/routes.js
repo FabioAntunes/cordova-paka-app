@@ -19,25 +19,42 @@ angular.module('routes', [])
     }
   })
 
-  .state('app.login', {
-    url: '/login',
+  .state('app.home', {
+    url: '/home',
     views: {
       'menuContent': {
-        templateUrl: 'templates/login.html',
+        templateUrl: 'templates/home.html',
         controller: 'LoginCtrl'
       }
     }
   })
-    .state('app.expenses', {
-      url: '/expenses',
+    .state('app.login', {
+      url: '/login',
       views: {
         'menuContent': {
-          templateUrl: 'templates/expenses.html',
-          controller: 'PlaylistsCtrl'
+          templateUrl: 'templates/login.html',
+          controller: 'LoginCtrl'
         }
       }
     })
-
+    .state('app.register', {
+      url: '/register',
+      views: {
+        'menuContent': {
+          templateUrl: 'templates/register.html',
+          controller: 'LoginCtrl'
+        }
+      }
+    })
+  .state('app.expenses', {
+    url: '/expenses',
+    views: {
+      'menuContent': {
+        templateUrl: 'templates/expenses.html',
+        controller: 'PlaylistsCtrl'
+      }
+    }
+  })
   .state('app.single', {
     url: '/playlists/:playlistId',
     views: {
@@ -53,10 +70,10 @@ angular.module('routes', [])
 .run(['$state', '$rootScope', function($state, $rootScope) {
     $rootScope.$on('$stateChangeStart', function(e, toState, toParams, fromState, fromParams) {
       
-        if (toState.name !== 'app.login' && true) {
+        if (true && !~toState.name.indexOf('app.home') && !~toState.name.indexOf('app.login') && !~toState.name.indexOf('app.register')) {
           // If logged out and transitioning to a logged in page:
           e.preventDefault();
-          $state.go('app.login');
+          $state.go('app.home');
         }
     });
 }]);
