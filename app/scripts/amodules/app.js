@@ -1,7 +1,7 @@
 'use strict';
-angular.module('starter', ['ionic', 'controllers', 'services', 'routes', 'config'])
+angular.module('starter', ['ionic', 'controllers', 'services', 'routes', 'config', 'ngCordova', 'directives'])
 
-.run(function($ionicPlatform) {
+.run(function($ionicPlatform, DBFctr) {
   $ionicPlatform.ready(function() {
     // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
     // for form inputs)
@@ -12,5 +12,7 @@ angular.module('starter', ['ionic', 'controllers', 'services', 'routes', 'config
       // org.apache.cordova.statusbar required
       StatusBar.styleDefault();
     }
+
+    DBFctr.initDB();
   });
 });

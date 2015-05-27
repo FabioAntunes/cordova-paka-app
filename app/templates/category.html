@@ -1,0 +1,12 @@
+<ion-view view-title="{{ category.name }}">
+  <ion-content>
+    <ion-list>
+      <ion-item ng-repeat="expense in category.expenses" ui-sref="expense.detail({ id: expense.id })">
+        <div class="row">
+         	<div class="col" ng-bind="expense.description"></div>
+         	<div class="col text-right" ng-bind="expense.value + '€'"></div>
+         </div>
+      </ion-item>
+    </ion-list>
+  </ion-content>
+</ion-view>

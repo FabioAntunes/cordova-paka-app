@@ -5,6 +5,25 @@ var _ = require('lodash');
 var path = require('path');
 var cordovaCli = require('cordova');
 var spawn = process.platform === 'win32' ? require('win-spawn') : require('child_process').spawn;
+var os = require('os');
+var ifaces = os.networkInterfaces();
+var ipAddress;
+
+Object.keys(ifaces).forEach(function (ifname) {
+  var alias = 0;
+
+  ifaces[ifname].forEach(function (iface) {
+    if ('IPv4' !== iface.family || iface.internal !== false) {
+      // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
+      return;
+    }
+
+    if(~ifname.indexOf('wlan')){
+      ipAddress = iface.address;
+    }
+  });
+});
+
 
 module.exports = function (grunt) {
 
@@ -48,13 +67,13 @@ module.exports = function (grunt) {
         space: '  ',
         wrap: '"use strict";\n\n {%= __ngModule %}',
         name: 'config',
-        dest: '<%= yeoman.app %>/<%= yeoman.scripts %>/configuration.js'
+        dest: '<%= yeoman.app %>/<%= yeoman.scripts %>/amodules/configuration.js'
       },
       development: {
         constants: {
           ENV: {
             name: 'development',
-            apiEndpoint: 'http://dev.yoursite.com:10000/'
+            api: 'http://'+ipAddress+':8000/api'
           }
         }
       },
@@ -62,7 +81,7 @@ module.exports = function (grunt) {
         constants: {
           ENV: {
             name: 'production',
-            apiEndpoint: 'http://api.yoursite.com/'
+            api: 'http://api.yoursite.com/'
           }
         }
       }

@@ -1,27 +1,27 @@
 'use strict';
 angular.module('services')
-.factory('AuthFctr', function (ENV, $http, $location) {
+.factory('AuthFctr', ['ENV', '$http', '$state', 'localStorageService', '$ionicHistory', function (ENV, $http, $state, localStorageService, $ionicHistory) {
 
   function _login(credentials) {
-    $http.post(ENV.api + '/auth/login', credentials).success(function(response){
-      console.log('token '+ response);
-      $location.path('/dashboard');
+    return $http.post(ENV.api + '/auth/login', credentials).success(function(response){
+      localStorageService.set('token', response);
+      $ionicHistory.nextViewOptions({
+        disableBack: true
+      });
+      $state.go('app.dashboard');
     }).error(function(data, status, headers, config){
-      console.log(data);
-      console.log(status);
-      console.log(headers);
-      console.log(config);
+      return data;
     });
   }
 
   function _logout(){
-    $cookieStore.remove('token');
+    localStorageService.remove('token');
     $location.path('/');
   }
 
   function _register(credentials) {
     $http.post(ENV.api + '/auth/register', credentials).success(function(response){
-      $cookieStore.put('token', response);
+      localStorageService.set('token', response);
       $location.path('/dashboard');
     }).error(function(data, status, headers, config){
       console.log(data);
@@ -32,7 +32,7 @@ angular.module('services')
   }
 
   function _check() {
-    return $cookieStore.get('token') ? true : false;
+    return localStorageService.get('token') ? true : false;
   }
 
   return {
@@ -41,4 +41,4 @@ angular.module('services')
     register: _register,
     check: _check
   };
-});
+}]);

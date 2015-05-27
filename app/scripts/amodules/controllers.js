@@ -1,5 +1,5 @@
 'use strict';
-angular.module('controllers', [])
+angular.module('controllers', ['LocalStorageModule'])
 .controller('PlaylistsCtrl', function($scope) {
   $scope.playlists = [
     { title: 'yOLO', id: 1 },

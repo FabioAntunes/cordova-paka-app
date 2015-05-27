@@ -21,6 +21,7 @@
     <script src="bower_components/ionic/release/js/ionic.js"></script>
     <script src="bower_components/ionic/release/js/ionic-angular.js"></script>
     <script src="bower_components/ngCordova/dist/ng-cordova.js"></script>
+    <script src="bower_components/angular-local-storage/dist/angular-local-storage.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
 
@@ -30,14 +31,22 @@
     <!-- your app's js -->
     <!-- build:js scripts/scripts.js -->
     <!-- injector:js -->
-    <script src="scripts/app.js"></script>
-    <script src="scripts/configuration.js"></script>
-    <script src="scripts/controllers.js"></script>
+    <script src="scripts/amodules/app.js"></script>
+    <script src="scripts/amodules/configuration.js"></script>
+    <script src="scripts/amodules/controllers.js"></script>
+    <script src="scripts/amodules/directives.js"></script>
+    <script src="scripts/amodules/routes.js"></script>
+    <script src="scripts/amodules/services.js"></script>
     <script src="scripts/controllers/app.controller.js"></script>
+    <script src="scripts/controllers/category.controller.js"></script>
+    <script src="scripts/controllers/dashboard.controller.js"></script>
     <script src="scripts/controllers/login.controller.js"></script>
-    <script src="scripts/routes.js"></script>
-    <script src="scripts/services.js"></script>
+    <script src="scripts/directives/repeatlast.directive.js"></script>
+    <script src="scripts/services/api.factory.js"></script>
     <script src="scripts/services/auth.factory.js"></script>
+    <script src="scripts/services/category.factory.js"></script>
+    <script src="scripts/services/database.factory.js"></script>
+    <script src="scripts/services/network.factory.js"></script>
     <!-- endinjector -->
     <!-- endbuild -->
   </head>
