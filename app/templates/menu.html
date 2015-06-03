@@ -8,6 +8,9 @@
         <button class="button button-icon button-clear ion-navicon" menu-toggle="left">
         </button>
       </ion-nav-buttons>
+      <ion-nav-buttons side="right">
+        <button class="button button-icon button-clear ion-android-add" ng-click="modal.show()"></button>
+      </ion-nav-buttons>
     </ion-nav-bar>
     <ion-nav-view name="menuContent"></ion-nav-view>
   </ion-side-menu-content>
@@ -18,8 +21,11 @@
     </ion-header-bar>
     <ion-content>
       <ion-list>
-        <ion-item nav-clear menu-close ui-sref="app.expenses">
-          Expenses
+        <ion-item nav-clear menu-close ui-sref="app.dashboard">
+          Dashboard
+        </ion-item>
+        <ion-item nav-clear menu-close ui-sref="app.categories">
+          Categories
         </ion-item>
         <ion-item nav-clear menu-close ui-sref="app.wizard">
           Wizard

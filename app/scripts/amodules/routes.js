@@ -64,6 +64,15 @@ angular.module('routes', [])
       }
     }
   })
+  .state('app.categorieslist', {
+    url: '/categories/list',
+    views: {
+      'menuContent': {
+        templateUrl: 'templates/categories.html',
+        controller: 'CategoryCtrl'
+      }
+    }
+  })
   .state('app.dashboard', {
     url: '/dashboard',
     views: {
@@ -76,24 +85,39 @@ angular.module('routes', [])
   // if none of the above states are matched, use this as the fallback
   $urlRouterProvider.otherwise('/app/dashboard');
 
-  $httpProvider.interceptors.push(['$q', '$location', 'localStorageService', function ($q, $location, localStorageService) {
-        return {
-            'request': function (config) {
-                config.headers = config.headers || {};
-                if (localStorageService.get('token')) {
-                    config.headers.Authorization = 'Bearer ' + localStorageService.get('token');
-                }
-                return config;
-            },
-            'responseError': function (response) {
-                if (response.status === 401 || response.status === 403 || response.status === 400) {
-                    localStorageService.remove('token');
-                    $location.path('/signin');
-                }
-                return $q.reject(response);
-            }
-        };
-    }]);
+  $httpProvider.interceptors.push(['$q', 'localStorageService', '$injector', function ($q, localStorageService, $injector) {
+    function getToken(config){
+      if (localStorageService.get('token')) {
+        config.headers.Authorization = 'Bearer ' + localStorageService.get('token');
+      }
+
+      return config;
+    }
+    return {
+      'request': function (config) {
+        config.headers = config.headers || {};
+        return getToken(config);
+      },
+      'responseError': function (response) {
+        if(response.status === 401){
+          var AuthFctr = $injector.get('AuthFctr');
+          return AuthFctr.renewToken().then(function(){
+            var $http = $injector.get('$http');
+            return $http(getToken(response.config));
+          }).catch(function(){
+            return $q.reject(response);
+          });
+        }
+        if (response.status === 403 || response.status === 400) {
+            localStorageService.remove('token');
+            $injector.get('UtilsFctr').redirectState('app.home', true);
+            // return;
+            console.log(response);
+        }
+        return $q.reject(response);
+      }
+    };
+  }]);
 })
 .run(['$state', '$rootScope', 'AuthFctr',function($state, $rootScope, AuthFctr) {
     $rootScope.$on('$stateChangeStart', function(e, toState, toParams, fromState, fromParams) {

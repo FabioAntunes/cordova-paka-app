@@ -1,33 +1,40 @@
 'use strict';
 angular.module('services')
-.factory('AuthFctr', ['ENV', '$http', '$state', 'localStorageService', '$ionicHistory', function (ENV, $http, $state, localStorageService, $ionicHistory) {
-
-  function _login(credentials) {
-    return $http.post(ENV.api + '/auth/login', credentials).success(function(response){
-      localStorageService.set('token', response);
-      $ionicHistory.nextViewOptions({
-        disableBack: true
-      });
-      $state.go('app.dashboard');
-    }).error(function(data, status, headers, config){
-      return data;
-    });
-  }
+.factory('AuthFctr', ['ENV', 'localStorageService', 'UtilsFctr', 'ApiFctr', function (ENV, localStorageService, UtilsFctr, ApiFctr) {
 
   function _logout(){
     localStorageService.remove('token');
-    $location.path('/');
+    UtilsFctr.redirectState('app.home', true);
   }
 
-  function _register(credentials) {
-    $http.post(ENV.api + '/auth/register', credentials).success(function(response){
-      localStorageService.set('token', response);
-      $location.path('/dashboard');
-    }).error(function(data, status, headers, config){
-      console.log(data);
-      console.log(status);
-      console.log(headers);
-      console.log(config);
+  function _login(credentials){
+    ApiFctr.login(credentials).then(function(response){
+      localStorageService.set('token', response.data);
+      UtilsFctr.redirectState('app.dashboard', true);
+    }).catch(function(error){
+      $ionicPopup.alert({
+        title: 'Oops',
+        template: data.error.message
+      });
+    });
+  }
+  
+  function _register(credentials){
+    ApiFctr.register(credentials).then(function(response){
+      localStorageService.set('token', response.data);
+      UtilsFctr.redirectState('app.dashboard', true);
+    }).catch(function(error){
+      console.log(error);
+    });
+  }
+
+  function _renewToken(){
+    return ApiFctr.renewToken().then(function(response){
+      localStorageService.set('token', response.data);
+      // UtilsFctr.redirectState('app.dashboard', true);
+    }).catch(function(error){
+      console.log(error);
+      //_logout();
     });
   }
 
@@ -35,10 +42,12 @@ angular.module('services')
     return localStorageService.get('token') ? true : false;
   }
 
+
   return {
-    login: _login,
     logout: _logout,
+    login: _login,
     register: _register,
-    check: _check
+    check: _check,
+    renewToken: _renewToken
   };
 }]);

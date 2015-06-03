@@ -10,7 +10,6 @@ var ifaces = os.networkInterfaces();
 var ipAddress;
 
 Object.keys(ifaces).forEach(function (ifname) {
-  var alias = 0;
 
   ifaces[ifname].forEach(function (iface) {
     if ('IPv4' !== iface.family || iface.internal !== false) {
@@ -65,7 +64,7 @@ module.exports = function (grunt) {
     ngconstant: {
       options: {
         space: '  ',
-        wrap: '"use strict";\n\n {%= __ngModule %}',
+        wrap: '\'use strict\';\n\n {%= __ngModule %}',
         name: 'config',
         dest: '<%= yeoman.app %>/<%= yeoman.scripts %>/amodules/configuration.js'
       },

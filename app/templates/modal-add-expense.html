@@ -1,0 +1,36 @@
+<ion-modal-view>
+  <ion-header-bar class="bar-positive">
+      <h1 class="title">Add Expense</h1>
+      <button class="button button-icon button-clear ion-android-close" ng-click="modal.hide()"></button>
+    </ion-header-bar>
+  <ion-content class="expense-modal">
+    <div class="row">
+      <div class="col">
+        <form role="form" name="valueForm" novalidate ng-submit="addExpense()">
+          <div class="list">
+            <label class="item item-input item-select">
+              <span class="input-label">Category</span>
+              <select ng-model="expense.category" required>
+                <option value="">Select one</option>
+                <option ng-repeat="category in data.categories" ng-bind="category.name" value="{{ $index }}"></option>
+              </select>
+            </label>
+            <label class="item item-input item-floating-label">
+              <span class="input-label">Value</span>
+              <input type="number" min="0" step="0.01"  ng-model="expense.value" placeholder="Value" required>
+            </label>
+            <label class="item item-input item-floating-label">
+              <span class="input-label">Description</span>
+              <textarea placeholder="Description" ng-model="expense.description" rows="5"></textarea>
+            </label>
+            <label class="item">
+              <button class="button button-block button-positive" type="submit" ng-disabled="valueForm.$invalid">Add</button>
+            </label>
+          </div>
+        </form>
+      </div>     
+    </div>
+    
+  </ion-content>
+</ion-view>
+

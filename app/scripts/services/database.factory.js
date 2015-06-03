@@ -1,6 +1,6 @@
 'use strict';
 angular.module('services')
-.factory('DBFctr', ['$cordovaSQLite', 'ApiFctr', '$q', 'NetworkFctr', 'AuthFctr', function ($cordovaSQLite, ApiFctr, $q, NetworkFctr, AuthFctr) {
+.factory('DBFctr', ['$cordovaSQLite', 'ApiFctr', '$q', 'AuthFctr', function ($cordovaSQLite, ApiFctr, $q, AuthFctr) {
   var _db;
   var _data = {
     _total: 0,
@@ -28,108 +28,118 @@ angular.module('services')
   }
 
   function _getCategoryExpenses(category){
-      return $cordovaSQLite.execute(_db, 'SELECT * FROM expenses WHERE category_id=?', [category.id]).then(function(results) {
-        var _dbExpense;
-        category.expenses = [];
-        category._total = 0;
-        for (var i = 0; i < results.rows.length; i++) {
-          _dbExpense = results.rows.item(i);
-          category._total += _dbExpense.value * 100;
-          category.expenses.push({
-            _value:  _dbExpense.value * 100, 
-            get value(){
-              return this._value / 100;
-            }, 
-            description:  _dbExpense.description, 
-          });
-        }
+    return _execute('SELECT * FROM expenses WHERE category_id=?', [category.appId]).then(function(results) {
+      var _dbExpense;
+      category.expenses = [];
+      category._total = 0;
+      for (var i = 0; i < results.rows.length; i++) {
+        _dbExpense = results.rows.item(i);
+        category._total += _dbExpense.value * 100;
+        category.expenses.push({
+          appId:  _dbExpense.appId,
+          id:  _dbExpense.id,
+          _value:  _dbExpense.value * 100,
+          get value(){
+            return this._value / 100;
+          }, 
+          description:  _dbExpense.description, 
+        });
+      }
 
-        _data._total += category._total;
-        _data.categories.push(category);
+      _data._total += category._total;
+      _data.categories.push(category);
 
-      }, function (err) {
-        console.log(err);
-      });
+    });
   }
 
   function _loadData () {
     _data.categories.length = 0;
 
-    $cordovaSQLite.execute(_db, 'SELECT * FROM categories', []).then(function(results) {
+    _execute('SELECT * FROM categories').then(function(results) {
       var _dbCategory;
+      var _dbPromises = [];
       for (var i = 0; i < results.rows.length; i++) {
         
         _dbCategory = results.rows.item(i);
         _dbCategory._total = _dbCategory.total;
-        Object.defineProperty(_dbCategory, "total", { get: function () { return this._total / 100; }});
-        _getCategoryExpenses(_dbCategory);
+        Object.defineProperty(_dbCategory, 'total', { get: function () { return this._total / 100; }});
+        _dbPromises.push(_getCategoryExpenses(_dbCategory));
+      }
+      return $q.all(_dbPromises)
+    }).then(function(){
 
+      if(syncWithAPI){
+        _syncDB();
       }
 
-    }, function (err) {
-      console.log(err);
-      //_resetArrays();
+      return _data;
+
+    }).catch(function (err) {
+      console.log(error);
+      return _data;
     });
     
-    if(syncWithAPI){
-      _syncDB();
-
-    }
   }
 
   function _syncDB() {
     
     var dbPromises = [];
 
-    if(NetworkFctr.isOnline()){
-      ApiFctr.getCategories().then(function(results){
+    ApiFctr.getCategories().then(function(results){
 
-        //update or insert categories from the API request
-        for (var i = 0; i < results.data.length; i++) {
-          dbPromises.push(_insertUpdateCategory(results.data[i]));
-          for (var j = 0; j < results.data[i].expenses.length; j++) {
-            dbPromises.push(_insertUpdateExpense(results.data[i].expenses[j], results.data[i]));
-          }
+      //update or insert categories from the API request
+      for (var i = 0; i < results.data.length; i++) {
+        dbPromises.push(_insertUpdateCategory(results.data[i]));
+        for (var j = 0; j < results.data[i].expenses.length; j++) {
+          dbPromises.push(_insertUpdateExpense(results.data[i].expenses[j], results.data[i]));
         }
+      }
 
 
-        //After all inserts/updates reload the new data from the database
-        $q.all(dbPromises).then(function(results){
+      //After all inserts/updates reload the new data from the database
+      $q.all(dbPromises).then(function(){
 
-          //Set syncWithAPI to false, since we already have synced and to prevent a loop of requests
-          syncWithAPI = false;
-          _loadData();
-        }, function(results) {
+        //Set syncWithAPI to false, since we already have synced and to prevent a loop of requests
+        syncWithAPI = false;
+        _loadData();
+      }, function() {
 
-          //Set syncWithAPI to false, since we already have synced and to prevent a loop of requests
-          syncWithAPI = false;
-          _loadData();
-        });
+        //Set syncWithAPI to false, since we already have synced and to prevent a loop of requests
+        syncWithAPI = false;
+        _loadData();
+      });
 
-      });      
-    }
+    });
 
   }
 
   function _insertUpdateCategory(category){
-      return $cordovaSQLite.execute(_db,
-          'INSERT OR REPLACE INTO categories (id,name) VALUES (?, ?)',
-          [category.id, category.name]);
+      return _execute(
+          'INSERT OR REPLACE INTO categories (appId, id,name, color) VALUES ((select appId from categories where id = ?),?, ?, ?)',
+          [category.id, category.id, category.name, category.color]);
   }
 
   function _insertUpdateExpense(expense, category){
-    return $cordovaSQLite.execute(_db,
-          'INSERT OR REPLACE INTO expenses (id, value, description, category_id) VALUES (?, ?, ?, ?)',
-          [expense.id, expense.value, expense.description, category.id]);
+    return _execute(
+          'INSERT OR REPLACE INTO expenses (appId, id, value, description, category_id, date) VALUES ((select appId from expenses where id = ?), ?, ?, ?, ?, ?)',
+          [expense.id, expense.id, expense.value, expense.description, category.appId, expense.date]);
   }
 
   function _getCategory(idCategory){
     return _data.categories.length ? _data.categories[idCategory] : {};
   }
 
+  function _execute(query, params){
+    if (typeof params === 'undefined') { params = []; }
+
+    return $cordovaSQLite.execute(_db, query, params);
+  }
+
   return {
     initDB: _initDB,
     getData: _data,
-    getCategory: _getCategory
+    getCategory: _getCategory,
+    execute: _execute,
+    loadData: _loadData
   };
 }]);

@@ -1,12 +1,13 @@
 'use strict';
 angular.module('services')
-.factory('CategoryFctr', ['ENV', '$http', function (ENV, $http) {
-  var categories
+.factory('CategoriesFctr', ['ENV', '$http', 'DBFctr', function (ENV, $http, DBFctr) {
+  
   function _getCategories() {
     return $http.get(ENV.api + '/categories/expenses');
   }
 
   return {
-    getCategories: _getCategories
+    getCategories: _getCategories,
+    getData: DBFctr.getData
   };
 }]);
