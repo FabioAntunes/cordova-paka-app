@@ -1,26 +1,19 @@
 'use strict';
 angular.module('services')
-.factory('ExpenseFctr', ['ApiFctr', 'DBFctr', function (ApiFctr, DBFctr) {
+.factory('ExpenseFctr', ['ApiFctr', 'DBFctr','$timeout', function (ApiFctr, DBFctr, $timeout) {
 
   function _insertExpense(expense, category){
     expense.category_id = category.id;
-    return APiFctr.insertExpense(expense).then(function(data){
+    return ApiFctr.insertExpense(expense).then(function(data){
       console.log(data);
-    	return DBFctr.execute('INSERT INTO expenses (id, value, description, category_id, date) VALUES (?, ?, ?, ?, ?)',
-        [expense.id, expense.value, expense.description, category.appId, expense.date]);
+      expense.id = data.id;
+    	return _persistExpense(expense, category);
       
-    }).then(function(res){
-      return _getExpense(res.insertId);
-    }).catch(function(error){
-      console.log(error);
-      expense.category_id = category.appId;
-      
-      return DBFctr.execute('INSERT INTO expenses (value, description, category_id, date) VALUES (?, ?, ?, ?)',
-    		[expense.value, expense.description, category.appId, expense.date])
-      .then(function(res){
-        return _getExpense(res.insertId);
-      });
     })
+    .catch(function(error){
+      console.log(error);
+      return _persistExpense(expense, category);
+    });
   }
 
   function _updateExpense(expense){
@@ -30,6 +23,15 @@ angular.module('services')
 
   function _getExpense(appId){
     return DBFctr.execute('SELECT * FROM expenses WHERE appId = ?', [appId]);
+  }
+
+  function _persistExpense(expense, category){
+    return DBFctr.persistExpense(expense, category).then(function(res){
+        expense.appId = res.insertId;
+        return $timeout(function(){
+          return DBFctr.appendExpense(expense, category.appId);
+        }, 1000);
+    });
   }
 
   return {

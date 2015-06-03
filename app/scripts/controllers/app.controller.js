@@ -5,7 +5,7 @@ angular.module('controllers')
   $scope.expense = {
     category: '',
     value: '',
-    description: '',
+    description: ''
   }
 
   $scope.menuIsEnabled = function() {
@@ -20,17 +20,18 @@ angular.module('controllers')
   });
 
   $scope.addExpense = function(){
+    $scope.modal.hide();
+    
     ExpenseFctr.insertExpense({
       value: $scope.expense.value,
       description: $scope.expense.description,
       date: Date.now
     }, $scope.data.categories[$scope.expense.category]);
-    ExpenseFctr.loadData();
-    $scope.modal.hide();
-    $scope.expense = {
-      category: '',
-      value: '',
-      description: '',
-    }
+    
+    // $scope.expense = {
+    //   category: '',
+    //   value: '',
+    //   description: ''
+    // }
   }
 }]);
