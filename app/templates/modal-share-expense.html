@@ -1,0 +1,35 @@
+<ion-modal-view ng-controller="ShareModalCtrl">
+  <ion-header-bar class="bar-positive">
+      <h1 class="title">Share Expense</h1>
+      <button class="button button-icon button-clear ion-android-close" ng-click="modalShare.hide()"></button>
+    </ion-header-bar>
+  <ion-content class="expense-modal">
+    <div class="row">
+      <div class="col">
+        <div class="list">
+          <label class="item item-input">
+            <i class="icon ion-search placeholder-icon"></i>
+            <input type="text"  ng-model="shareModal.search" placeholder="Search your friends" required ng-focus="triggerPopover($event)" ng-keyup="triggerPopover($event)" ng-blur="triggerPopover($event)">
+          </label>
+        </div>
+      </div>     
+    </div>
+    <div class="row">
+      <div class="col">
+        <ion-item>
+          <div class="row">
+            <div class="col">Me</div>
+            <div class="col text-right" ng-bind="expense.value / (shareModal.shareFriends.length + 1)  + '€'"></div>
+           </div>
+        </ion-item>
+        <ion-item ng-repeat="shareFriend in shareModal.shareFriends">
+          <div class="row">
+            <div class="col" ng-bind="shareFriend.name"></div>
+            <div class="col text-right" ng-bind="expense.value / (shareModal.shareFriends.length + 1)  + '€'"></div>
+           </div>
+        </ion-item>
+      </div>     
+    </div>
+  </ion-content>
+</ion-view>
+

@@ -49,8 +49,9 @@ angular.module('services')
 
   function _loadData () {
     _data.categories.length = 0;
+    _data._total = 0;
 
-    _execute('SELECT * FROM categories').then(function(results) {
+    return _execute('SELECT * FROM categories').then(function(results) {
       var _dbCategory;
       var _dbPromises = [];
       for (var i = 0; i < results.rows.length; i++) {

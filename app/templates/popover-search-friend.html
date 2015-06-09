@@ -1,0 +1,23 @@
+<ion-popover-view>
+  <ion-header-bar>
+    <h1 class="title">Friends</h1>
+  </ion-header-bar>
+  <ion-content>    
+    <div class="row">
+      <div class="col">
+        <ion-list >
+          <ion-item ng-repeat="friend in shareModal.friends | filter:shareModal.search track by $index">
+            <div class="row">
+              <div class="col">
+                <strong ng-bind="friend.name"></strong><br>{{ friend.email }}
+              </div>
+              <div class="col">
+                <button class="button-positive" ng-click="addFriend($index)">Add</button>
+              </div>
+            </div>
+          </ion-item>
+        </ion-list>
+      </div>     
+    </div>
+  </ion-content>
+</ion-popover-view>

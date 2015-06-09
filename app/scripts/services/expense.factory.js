@@ -12,6 +12,7 @@ angular.module('services')
     })
     .catch(function(error){
       console.log(error);
+      expense.id = null;
       return _persistExpense(expense, category);
     });
   }

@@ -1,13 +1,13 @@
 'use strict';
 angular.module('services')
 .factory('CategoriesFctr', ['ENV', '$http', 'DBFctr', function (ENV, $http, DBFctr) {
+  var Category = $resource(ENV.api+'/categories/:id', {id:'@id'});
   
   function _getCategories() {
-    return $http.get(ENV.api + '/categories/expenses');
+    return Category.query();
   }
 
   return {
-    getCategories: _getCategories,
-    getData: DBFctr.getData
+    getCategories: _getCategories
   };
 }]);

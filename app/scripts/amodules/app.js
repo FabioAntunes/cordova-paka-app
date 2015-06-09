@@ -1,5 +1,5 @@
 'use strict';
-angular.module('starter', ['ionic', 'controllers', 'services', 'routes', 'config', 'ngCordova', 'directives'])
+angular.module('starter', ['ionic', 'controllers', 'services', 'routes', 'config', 'ngCordova','ngResource','directives'])
 
 .run(function($ionicPlatform, DBFctr) {
   $ionicPlatform.ready(function() {

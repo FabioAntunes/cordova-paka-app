@@ -1,5 +1,9 @@
 <ion-view view-title="Dashboard">
   <ion-content>
+    <ion-refresher
+      pulling-text="Pull to refresh..."
+      on-refresh="doRefresh()">
+    </ion-refresher>
     <ion-list>
       <ion-item ng-repeat="category in data.categories" ui-sref="app.categories({ idCategory: $index })" repeat-last>
         <div class="row">
