@@ -16,16 +16,39 @@
     </div>
     <div class="row">
       <div class="col">
+        <ion-toggle ng-model="equal" toggle-class="toggle-balanced">Equal amount?</ion-toggle>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
         <ion-item>
           <div class="row">
             <div class="col">Me</div>
-            <div class="col text-right" ng-bind="expense.value / (shareModal.shareFriends.length + 1)  + '€'"></div>
+            <div class="col text-right" ng-bind="me.expenseValue  + '€'"></div>
+           </div>
+           <div class="row">
+             <div class="col">
+                <div class="item range range-assertive">
+                  <i class="icon ion-android-remove"></i>
+                  <input type="range" ng-model="me.expenseValue" value="{{ me.expenseValue }}" step="0.01" min ="0" max ="{{ expense.value }}" ng-change="recalcTotal()"  ng-disabled="!equal">
+                  <i class="icon ion-android-add"></i>
+                </div>
+             </div>
            </div>
         </ion-item>
-        <ion-item ng-repeat="shareFriend in shareModal.shareFriends">
+        <ion-item ng-repeat="shareFriend in shareModal.shareFriends track by id">
           <div class="row">
             <div class="col" ng-bind="shareFriend.name"></div>
-            <div class="col text-right" ng-bind="expense.value / (shareModal.shareFriends.length + 1)  + '€'"></div>
+            <div class="col text-right" ng-bind="shareModal.shareFriends[$index].expenseValue  + '€'"></div>
+           </div>
+           <div class="row">
+             <div class="col">
+                <div class="item range range-assertive">
+                  <i class="icon ion-android-remove"></i>
+                  <input type="range" ng-model="shareModal.shareFriends[$index].expenseValue" step="0.01" min ="0" max ="{{ expense.value }}" value="{{ shareModal.shareFriends[$index].expenseValue }}" ng-change="recalcTotal()"  ng-disabled="!equal">
+                  <i class="icon ion-android-add"></i>
+                </div>
+             </div>
            </div>
         </ion-item>
       </div>     
