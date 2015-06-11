@@ -5,7 +5,7 @@ angular.module('controllers')
   $scope.expense = {
     category: "2",
     value: 20,
-    date: null,
+    date: new Date(),
     description: Math.random(),
     share: true
   };
@@ -42,8 +42,9 @@ angular.module('controllers')
     ExpenseFctr.insertExpense({
       value: $scope.expense.value,
       description: $scope.expense.description,
-      date: Date.now
+      date: $scope.expense.date,
     }, $scope.data.categories[$scope.expense.category]);
+    
     
     if($scope.expense.share){
 

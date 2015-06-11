@@ -27,8 +27,8 @@ angular.module('controllers')
     };
     friend.expenseValue = 0;
     $scope.shareModal.shareFriends.push(friend);
-    $scope.recalcTotal();
     $scope.popover.hide();
+    $scope.recalcTotal();
     $scope.shareModal.search = '';
   };
 
@@ -41,64 +41,94 @@ angular.module('controllers')
     }
   };
 
-  $scope.recalcTotal = function(index){
+  $scope.calcEqual = function(){
     var i = 0;
     var length = $scope.shareModal.shareFriends.length;
     var max = $scope.expense.value;
+    var equalExpense = $scope.expense.value / (length + 1);
+
+
+    for(i = 0; i < length; i++){
+      $scope.shareModal.shareFriends[i].expenseValue = _roundToTwo(equalExpense);
+      max = _roundToTwo(max - $scope.shareModal.shareFriends[i].expenseValue);
+    }
+
+    $scope.me.expenseValue = _roundToTwo(equalExpense);
+    max = _roundToTwo(max - $scope.me.expenseValue);
+
+    $scope.me.expenseValue = _roundToTwo(max + $scope.me.expenseValue);
+  }
+
+  $scope.recalcTotal = function(index){
+    
     
     if($scope.shareModal.equal){
 
-      var equalExpense = $scope.expense.value / (length + 1);
-
-
-      for(i = 0; i < length; i++){
-        $scope.shareModal.shareFriends[i].expenseValue = _roundToTwo(equalExpense);
-        max = _roundToTwo(max - $scope.shareModal.shareFriends[i].expenseValue);
-      }
-
-      $scope.me.expenseValue = _roundToTwo(equalExpense);
-      max = _roundToTwo(max - $scope.me.expenseValue);
-
-      $scope.me.expenseValue = _roundToTwo(max + $scope.me.expenseValue);
+      $scope.calcEqual();
       
     }else{
-      $scope.me.expenseValue = parseFloat($scope.me.expenseValue) * 100;
-      var total = $scope.me.expenseValue;
-      var delta = 0;
-      var i = 0;
-
-
-      for (i = 0; i < length; i++) {
-        $scope.shareModal.shareFriends[i].expenseValue = parseFloat($scope.shareModal.shareFriends[i].expenseValue) * 100;
-        total += $scope.shareModal.shareFriends[i].expenseValue;
-      }
-
-      delta = ($scope.expense.value * 100 - total)/length;
-
-      if(index < 0){
-        for (i = 0; i < length; i++) {
-          $scope.shareModal.shareFriends[i].expenseValue = _calcNewValue(delta, $scope.me.expenseValue, $scope.shareModal.shareFriends[i].expenseValue);
-          max = _roundToTwo(max - $scope.shareModal.shareFriends[i].expenseValue);
-        }
-
-        $scope.me.expenseValue = $scope.me.expenseValue / 100;
-        max = _roundToTwo(max - $scope.me.expenseValue);
-        $scope.shareModal.shareFriends[i].expenseValue = _roundToTwo($scope.shareModal.shareFriends[i].expenseValue + $scope.me.expenseValue);
-      }else{
-        $scope.me.expenseValue = _calcNewValue(delta, $scope.shareModal.shareFriends[index].expenseValue, $scope.me.expenseValue);
-        for (i = 0; i < length; i++) {
-          if(i !== index){
-            $scope.shareModal.shareFriends[i].expenseValue = _calcNewValue(delta, $scope.shareModal.shareFriends[index].expenseValue, $scope.shareModal.shareFriends[i].expenseValue);
-            max = _roundToTwo(max - $scope.shareModal.shareFriends[i].expenseValue);
-          }
-        }
-        $scope.shareModal.shareFriends[index].expenseValue = $scope.shareModal.shareFriends[index].expenseValue / 100;
-
-        max = _roundToTwo(max - $scope.me.expenseValue);
-        $scope.me.expenseValue = _roundToTwo(max + $scope.me.expenseValue);
-      }
+      $scope.calcDiff(index);
     }
   };
+
+  $scope.calcDiff = function(index){
+    var length = $scope.shareModal.shareFriends.length;
+    var max = $scope.expense.value;
+    var equalExpense = $scope.expense.value / (length + 1);
+    var delta = 0;
+    var i = 0;
+    var leftovers = 0;
+    var total = $scope.me.expenseValue = parseFloat($scope.me.expenseValue) * 100;
+    
+
+
+    for (i = 0; i < length; i++) {
+      $scope.shareModal.shareFriends[i].expenseValue = parseFloat($scope.shareModal.shareFriends[i].expenseValue) * 100;
+      total += $scope.shareModal.shareFriends[i].expenseValue;
+    }
+
+    delta = ($scope.expense.value * 100 - total)/length;
+
+    for (i = 0; i < length; i++) {
+      
+      if(i !== index && index >= 0){
+        $scope.shareModal.shareFriends[i].expenseValue = _calcNewValue(delta, $scope.shareModal.shareFriends[index].expenseValue, $scope.shareModal.shareFriends[i].expenseValue);
+      }else if(index <0){
+        $scope.shareModal.shareFriends[i].expenseValue = _calcNewValue(delta, $scope.me.expenseValue, $scope.shareModal.shareFriends[i].expenseValue);
+      }else{
+        $scope.shareModal.shareFriends[i].expenseValue = _roundToTwo($scope.shareModal.shareFriends[i].expenseValue / 100);
+      }
+      
+      max = _roundToTwo(max - $scope.shareModal.shareFriends[i].expenseValue);
+    }
+
+    if(index < 0){
+      $scope.me.expenseValue = _roundToTwo($scope.me.expenseValue / 100);
+      max = _roundToTwo(max - $scope.me.expenseValue);
+      for (i = 0; i < length; i++) {
+        leftovers = _roundToTwo($scope.shareModal.shareFriends[i].expenseValue + max);
+        if(leftovers >= 0 && leftovers <= $scope.expense.value){
+          $scope.shareModal.shareFriends[i].expenseValue = leftovers;
+          break;
+        }
+      }
+    }else{
+      $scope.me.expenseValue = _calcNewValue(delta, $scope.shareModal.shareFriends[index].expenseValue, $scope.me.expenseValue);
+      max = _roundToTwo(max - $scope.me.expenseValue);
+      leftovers = _roundToTwo(max + $scope.me.expenseValue);
+      if(leftovers >= 0 && leftovers <= $scope.expense.value){
+        $scope.me.expenseValue = leftovers;
+      }else{
+        for (i = 0; i < length; i++) {
+          leftovers = _roundToTwo($scope.shareModal.shareFriends[i].expenseValue + max);
+          if(leftovers >= 0 && leftovers <= $scope.expense.value && i !== index){
+            $scope.shareModal.shareFriends[i].expenseValue = leftovers;
+            break;
+          }
+        }
+      }
+    }
+  }
 
   function _calcNewValue(delta, value, userExpense){
     

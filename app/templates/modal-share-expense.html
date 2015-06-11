@@ -16,7 +16,7 @@
     </div>
     <div class="row">
       <div class="col">
-        <ion-toggle ng-model="shareModal.equal" toggle-class="toggle-balanced">Equal amount?</ion-toggle>
+        <ion-toggle ng-change="calcEqual()" ng-model="shareModal.equal" toggle-class="toggle-balanced">Equal amount?</ion-toggle>
       </div>
     </div>
     <div class="row">
@@ -30,7 +30,7 @@
              <div class="col">
                 <div class="item range range-assertive">
                   <i class="icon ion-android-remove"></i>
-                  <input type="range" ng-model="me.expenseValue" value="{{ me.expenseValue }}" step="0.02" min ="0" max ="{{ expense.value }}" ng-change="recalcTotal(-1)"  ng-disabled="shareModal.equal">
+                  <input type="range" ng-model="me.expenseValue" value="{{ me.expenseValue }}" step="0.02" min ="0" max ="{{ expense.value }}" ng-change="calcDiff(-1)"  ng-disabled="shareModal.equal">
                   <i class="icon ion-android-add"></i>
                 </div>
              </div>
@@ -45,7 +45,7 @@
              <div class="col">
                 <div class="item range range-assertive">
                   <i class="icon ion-android-remove"></i>
-                  <input type="range" ng-model="shareModal.shareFriends[$index].expenseValue" step="0.01" min ="0" max ="{{ expense.value }}" value="{{ shareModal.shareFriends[$index].expenseValue }}" ng-change="recalcTotal($index)"  ng-disabled="shareModal.equal">
+                  <input type="range" ng-model="shareModal.shareFriends[$index].expenseValue" step="0.01" min ="0" max ="{{ expense.value }}" value="{{ shareModal.shareFriends[$index].expenseValue }}" ng-change="calcDiff($index)"  ng-disabled="shareModal.equal">
                   <i class="icon ion-android-add"></i>
                 </div>
              </div>
