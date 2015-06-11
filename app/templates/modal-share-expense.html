@@ -16,7 +16,7 @@
     </div>
     <div class="row">
       <div class="col">
-        <ion-toggle ng-model="equal" toggle-class="toggle-balanced">Equal amount?</ion-toggle>
+        <ion-toggle ng-model="shareModal.equal" toggle-class="toggle-balanced">Equal amount?</ion-toggle>
       </div>
     </div>
     <div class="row">
@@ -30,13 +30,13 @@
              <div class="col">
                 <div class="item range range-assertive">
                   <i class="icon ion-android-remove"></i>
-                  <input type="range" ng-model="me.expenseValue" value="{{ me.expenseValue }}" step="0.01" min ="0" max ="{{ expense.value }}" ng-change="recalcTotal()"  ng-disabled="!equal">
+                  <input type="range" ng-model="me.expenseValue" value="{{ me.expenseValue }}" step="0.02" min ="0" max ="{{ expense.value }}" ng-change="recalcTotal(-1)"  ng-disabled="shareModal.equal">
                   <i class="icon ion-android-add"></i>
                 </div>
              </div>
            </div>
         </ion-item>
-        <ion-item ng-repeat="shareFriend in shareModal.shareFriends track by id">
+        <ion-item ng-repeat="shareFriend in shareModal.shareFriends track by shareFriend.id">
           <div class="row">
             <div class="col" ng-bind="shareFriend.name"></div>
             <div class="col text-right" ng-bind="shareModal.shareFriends[$index].expenseValue  + '€'"></div>
@@ -45,7 +45,7 @@
              <div class="col">
                 <div class="item range range-assertive">
                   <i class="icon ion-android-remove"></i>
-                  <input type="range" ng-model="shareModal.shareFriends[$index].expenseValue" step="0.01" min ="0" max ="{{ expense.value }}" value="{{ shareModal.shareFriends[$index].expenseValue }}" ng-change="recalcTotal()"  ng-disabled="!equal">
+                  <input type="range" ng-model="shareModal.shareFriends[$index].expenseValue" step="0.01" min ="0" max ="{{ expense.value }}" value="{{ shareModal.shareFriends[$index].expenseValue }}" ng-change="recalcTotal($index)"  ng-disabled="shareModal.equal">
                   <i class="icon ion-android-add"></i>
                 </div>
              </div>
