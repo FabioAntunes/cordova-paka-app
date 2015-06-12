@@ -1,58 +1,39 @@
 <ion-modal-view ng-controller="ShareModalCtrl">
   <ion-header-bar class="bar-positive">
       <h1 class="title">Share Expense</h1>
-      <button class="button button-icon button-clear ion-android-close" ng-click="modalShare.hide()"></button>
+      <button class="button button-icon button-clear ion-android-close" ng-click="closeModalShare()"></button>
     </ion-header-bar>
   <ion-content class="expense-modal">
-    <div class="row">
-      <div class="col">
-        <div class="list">
-          <label class="item item-input">
-            <i class="icon ion-search placeholder-icon"></i>
-            <input type="text"  ng-model="shareModal.search" placeholder="Search your friends" required ng-focus="triggerPopover($event)" ng-keyup="triggerPopover($event)" ng-blur="triggerPopover($event)">
-          </label>
+    <div class="list">
+      <label class="item item-input">
+        <i class="icon ion-search placeholder-icon"></i>
+        <input type="text"  ng-model="sMod.search" placeholder="Search your friends" required ng-focus="triggerPopover($event)" ng-keyup="triggerPopover($event)" ng-blur="triggerPopover($event)">
+      </label>
+    </div>
+    <ion-toggle ng-change="calcEqual()" ng-model="sMod.equal" toggle-class="toggle-balanced">Equal amount?</ion-toggle>
+    <ion-list can-swipe="sMod.sFriends.length > 1">        
+      <ion-item ng-repeat="sFriend in sMod.sFriends track by sFriend.id">
+        <div class="row">
+          <div class="col" ng-bind="sFriend.name"></div>
+          <div class="col text-right" ng-bind="sMod.sFriends[$index].expenseValue  + '€'"></div>
         </div>
-      </div>     
-    </div>
-    <div class="row">
-      <div class="col">
-        <ion-toggle ng-change="calcEqual()" ng-model="shareModal.equal" toggle-class="toggle-balanced">Equal amount?</ion-toggle>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col">
-        <ion-item>
-          <div class="row">
-            <div class="col">Me</div>
-            <div class="col text-right" ng-bind="me.expenseValue  + '€'"></div>
-           </div>
-           <div class="row">
-             <div class="col">
-                <div class="item range range-assertive">
-                  <i class="icon ion-android-remove"></i>
-                  <input type="range" ng-model="me.expenseValue" value="{{ me.expenseValue }}" step="0.02" min ="0" max ="{{ expense.value }}" ng-change="calcDiff(-1)"  ng-disabled="shareModal.equal">
-                  <i class="icon ion-android-add"></i>
-                </div>
-             </div>
-           </div>
-        </ion-item>
-        <ion-item ng-repeat="shareFriend in shareModal.shareFriends track by shareFriend.id">
-          <div class="row">
-            <div class="col" ng-bind="shareFriend.name"></div>
-            <div class="col text-right" ng-bind="shareModal.shareFriends[$index].expenseValue  + '€'"></div>
-           </div>
-           <div class="row">
-             <div class="col">
-                <div class="item range range-assertive">
-                  <i class="icon ion-android-remove"></i>
-                  <input type="range" ng-model="shareModal.shareFriends[$index].expenseValue" step="0.01" min ="0" max ="{{ expense.value }}" value="{{ shareModal.shareFriends[$index].expenseValue }}" ng-change="calcDiff($index)"  ng-disabled="shareModal.equal">
-                  <i class="icon ion-android-add"></i>
-                </div>
-             </div>
-           </div>
-        </ion-item>
-      </div>     
-    </div>
+        <div class="row" ng-show="!sMod.equal">
+          <div class="col">
+            <div class="item range range-assertive">
+              <i class="icon ion-android-remove" ng-click="incDec($index, false)"></i>
+              <input type="range" ng-model="sMod.sFriends[$index].expenseValue" step="0.01" min ="0" max ="{{ expense.value }}" value="{{ sMod.sFriends[$index].expenseValue }}" ng-change="calcDiff($index)">
+              <i class="icon ion-android-add" ng-click="incDec($index, true)"></i>
+            </div>
+          </div>
+        </div>
+        <ion-option-button class="button icon-left ion-android-delete button-assertive" ng-click="removeFriend($index)" ng-if="$index !== 0">
+          Delete
+        </ion-option-button>
+        <ion-option-button class="button icon-left ion-android-create button-positive" ng-click="edit($index)" ng-if="!sMod.equal && sMod.sFriends.length > 1">
+            Edit
+        </ion-option-button>
+      </ion-item>
+    </ion-list>
   </ion-content>
 </ion-view>
 

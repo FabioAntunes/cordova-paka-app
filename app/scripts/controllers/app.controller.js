@@ -3,10 +3,10 @@ angular.module('controllers')
 .controller('AppCtrl', ['$scope', '$state', '$ionicModal','ExpenseFctr', 'DBFctr', function($scope, $state, $ionicModal, ExpenseFctr, DBFctr) {
   $scope.data = DBFctr.getData;
   $scope.expense = {
-    category: "2",
-    value: 20,
+    category: '1',
+    value: 15,
     date: new Date(),
-    description: Math.random(),
+    description: 'Dentista',
     share: true
   };
   
@@ -36,25 +36,32 @@ angular.module('controllers')
   });
 
   $scope.addExpense = function(){
-    $scope.modal.hide();
-    console.log($scope.date);
-    
-    ExpenseFctr.insertExpense({
-      value: $scope.expense.value,
-      description: $scope.expense.description,
-      date: $scope.expense.date,
-    }, $scope.data.categories[$scope.expense.category]);
-    
+    $scope.modal.hide();    
     
     if($scope.expense.share){
-
+      $scope.me = {
+        expenseValue: $scope.expense.value
+      }
       $scope.modalShare.show();
 
+    }else{
+      ExpenseFctr.insertExpense({
+        value: $scope.expense.value,
+        description: $scope.expense.description,
+        date: $scope.expense.date,
+      }, $scope.data.categories[$scope.expense.category]);
+
+      $scope.expense = {
+        category: null,
+        value: null,
+        description: null
+      }
     }
-    // $scope.expense = {
-    //   category: '',
-    //   value: '',
-    //   description: ''
-    // }
-  }
+
+  };
+
+  $scope.closeModalShare = function(){
+    $scope.modalShare.hide();
+    $scope.modal.show(); 
+  };
 }]);

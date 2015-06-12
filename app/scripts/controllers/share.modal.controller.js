@@ -1,16 +1,18 @@
 'use strict';
 angular.module('controllers')
-.controller('ShareModalCtrl', ['$scope','FriendsFctr', '$ionicPopover', function($scope, FriendsFctr, $ionicPopover) {
-  $scope.shareModal = {
+.controller('ShareModalCtrl', ['$scope','FriendsFctr', '$ionicPopover', '$ionicPopup', '$ionicListDelegate', function($scope, FriendsFctr, $ionicPopover, $ionicPopup, $ionicListDelegate) {
+  $scope.sMod = {
     friends: FriendsFctr.getFriends(),
-    shareFriends: [],
+    sFriends: [{
+      id: 0,
+      name: 'Me',
+      expenseValue: $scope.expense.value
+    }],
     search: '',
-    equal: true
+    equal: true,
+    popup: null
     
   };
-  $scope.me = {
-    expenseValue: $scope.expense.value
-  }
 
   $ionicPopover.fromTemplateUrl('templates/popover-search-friend.html', {
     scope: $scope
@@ -20,49 +22,90 @@ angular.module('controllers')
 
   $scope.addFriend = function(friendId){
     var friend;
-    for (var i = 0; i < $scope.shareModal.friends.length; i++) {
-      if($scope.shareModal.friends[i].id === friendId){
-        friend = $scope.shareModal.friends[i];
+    for (var i = 0; i < $scope.sMod.friends.length; i++) {
+      if($scope.sMod.friends[i].id === friendId){
+        friend = $scope.sMod.friends[i];
       }
     };
     friend.expenseValue = 0;
-    $scope.shareModal.shareFriends.push(friend);
+    $scope.sMod.sFriends.push(friend);
     $scope.popover.hide();
     $scope.recalcTotal();
-    $scope.shareModal.search = '';
+    $scope.sMod.search = '';
+  };
+
+  $scope.incDec = function($index, isInc){
+    var morpheus = isInc ? 1 : -1;
+    var sum = _roundToTwo((parseFloat($scope.sMod.sFriends[$index].expenseValue) * 100 + morpheus)/100);
+    if(isInc && sum <= $scope.expense.value || !isInc && sum >= 0){
+      $scope.sMod.sFriends[$index].expenseValue = sum;
+      $scope.calcDiff($index);
+    }
+  };
+
+  $scope.removeFriend = function($index){
+    $scope.sMod.sFriends.splice($index, 1);
+    $scope.recalcTotal(0);
+    $ionicListDelegate.closeOptionButtons();
+  };
+
+  $scope.edit = function($index){
+    $scope.sMod.popup = $scope.sMod.sFriends[$index].expenseValue;
+    var popup = $ionicPopup.show({
+      template: '<input type="number" min="0" step="0.01"  ng-model="sMod.popup" placeholder="Value">',
+      title: 'Edit value',
+      scope: $scope,
+      buttons: [
+        { text: 'Cancel' },
+        {
+          text: '<b>Save</b>',
+          type: 'button-positive',
+          onTap: function(e) {
+            if (!$scope.sMod.popup || $scope.sMod.popup > $scope.expense.value) {
+              e.preventDefault();
+            } else {
+              return $scope.sMod.popup;
+            }
+          }
+        }
+      ]
+    });
+
+    popup.then(function(res) {
+      $scope.sMod.sFriends[$index].expenseValue = res;
+      $scope.calcDiff($index);
+      $ionicListDelegate.closeOptionButtons();
+    });
   };
 
   $scope.triggerPopover = function($event){
-    if($scope.shareModal.search && $scope.shareModal.search.length && !$scope.popover.isShown()){
+    if($scope.sMod.search && $scope.sMod.search.length && !$scope.popover.isShown()){
       $scope.popover.show($event);
 
-    }else if(!$scope.shareModal.search && $scope.popover.isShown()){
+    }else if(!$scope.sMod.search && $scope.popover.isShown()){
       $scope.popover.hide();
     }
   };
 
   $scope.calcEqual = function(){
     var i = 0;
-    var length = $scope.shareModal.shareFriends.length;
+    var length = $scope.sMod.sFriends.length;
     var max = $scope.expense.value;
-    var equalExpense = $scope.expense.value / (length + 1);
+    var equalExpense = $scope.expense.value / length;
 
 
     for(i = 0; i < length; i++){
-      $scope.shareModal.shareFriends[i].expenseValue = _roundToTwo(equalExpense);
-      max = _roundToTwo(max - $scope.shareModal.shareFriends[i].expenseValue);
+      $scope.sMod.sFriends[i].expenseValue = _roundToTwo(equalExpense);
+      max = _roundToTwo(max - $scope.sMod.sFriends[i].expenseValue);
     }
 
-    $scope.me.expenseValue = _roundToTwo(equalExpense);
-    max = _roundToTwo(max - $scope.me.expenseValue);
-
-    $scope.me.expenseValue = _roundToTwo(max + $scope.me.expenseValue);
+    $scope.sMod.sFriends[0].expenseValue = _roundToTwo(max + $scope.sMod.sFriends[0].expenseValue);
   }
 
   $scope.recalcTotal = function(index){
     
     
-    if($scope.shareModal.equal){
+    if($scope.sMod.equal){
 
       $scope.calcEqual();
       
@@ -72,60 +115,41 @@ angular.module('controllers')
   };
 
   $scope.calcDiff = function(index){
-    var length = $scope.shareModal.shareFriends.length;
+    var length = $scope.sMod.sFriends.length;
     var max = $scope.expense.value;
-    var equalExpense = $scope.expense.value / (length + 1);
+    var equalExpense = $scope.expense.value / length;
     var delta = 0;
     var i = 0;
     var leftovers = 0;
-    var total = $scope.me.expenseValue = parseFloat($scope.me.expenseValue) * 100;
+    var total = 0;
     
 
 
     for (i = 0; i < length; i++) {
-      $scope.shareModal.shareFriends[i].expenseValue = parseFloat($scope.shareModal.shareFriends[i].expenseValue) * 100;
-      total += $scope.shareModal.shareFriends[i].expenseValue;
+      $scope.sMod.sFriends[i].expenseValue = parseFloat($scope.sMod.sFriends[i].expenseValue) * 100;
+      total += $scope.sMod.sFriends[i].expenseValue;
     }
 
     delta = ($scope.expense.value * 100 - total)/length;
 
     for (i = 0; i < length; i++) {
       
-      if(i !== index && index >= 0){
-        $scope.shareModal.shareFriends[i].expenseValue = _calcNewValue(delta, $scope.shareModal.shareFriends[index].expenseValue, $scope.shareModal.shareFriends[i].expenseValue);
-      }else if(index <0){
-        $scope.shareModal.shareFriends[i].expenseValue = _calcNewValue(delta, $scope.me.expenseValue, $scope.shareModal.shareFriends[i].expenseValue);
-      }else{
-        $scope.shareModal.shareFriends[i].expenseValue = _roundToTwo($scope.shareModal.shareFriends[i].expenseValue / 100);
+      if(i !== index){
+        $scope.sMod.sFriends[i].expenseValue = _calcNewValue(delta, $scope.sMod.sFriends[index].expenseValue, $scope.sMod.sFriends[i].expenseValue);
+        max = _roundToTwo(max - $scope.sMod.sFriends[i].expenseValue);
       }
       
-      max = _roundToTwo(max - $scope.shareModal.shareFriends[i].expenseValue);
     }
 
-    if(index < 0){
-      $scope.me.expenseValue = _roundToTwo($scope.me.expenseValue / 100);
-      max = _roundToTwo(max - $scope.me.expenseValue);
-      for (i = 0; i < length; i++) {
-        leftovers = _roundToTwo($scope.shareModal.shareFriends[i].expenseValue + max);
-        if(leftovers >= 0 && leftovers <= $scope.expense.value){
-          $scope.shareModal.shareFriends[i].expenseValue = leftovers;
-          break;
-        }
-      }
-    }else{
-      $scope.me.expenseValue = _calcNewValue(delta, $scope.shareModal.shareFriends[index].expenseValue, $scope.me.expenseValue);
-      max = _roundToTwo(max - $scope.me.expenseValue);
-      leftovers = _roundToTwo(max + $scope.me.expenseValue);
-      if(leftovers >= 0 && leftovers <= $scope.expense.value){
-        $scope.me.expenseValue = leftovers;
-      }else{
-        for (i = 0; i < length; i++) {
-          leftovers = _roundToTwo($scope.shareModal.shareFriends[i].expenseValue + max);
-          if(leftovers >= 0 && leftovers <= $scope.expense.value && i !== index){
-            $scope.shareModal.shareFriends[i].expenseValue = leftovers;
-            break;
-          }
-        }
+    $scope.sMod.sFriends[index].expenseValue = _roundToTwo($scope.sMod.sFriends[index].expenseValue / 100);
+    max = _roundToTwo(max - $scope.sMod.sFriends[index].expenseValue);
+
+
+    for (i = 0; i < length; i++) {
+      leftovers = _roundToTwo($scope.sMod.sFriends[i].expenseValue + max);
+      if(leftovers >= 0 && leftovers <= $scope.expense.value && i !== index){
+        $scope.sMod.sFriends[i].expenseValue = leftovers;
+        break;
       }
     }
   }

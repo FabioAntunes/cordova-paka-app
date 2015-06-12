@@ -6,7 +6,7 @@
     <div class="row">
       <div class="col">
         <ion-list >
-          <ion-item ng-repeat="friend in shareModal.friends | filter:shareModal.search track by $index">
+          <ion-item ng-repeat="friend in sMod.friends | filter:sMod.search track by $index">
             <div class="row">
               <div class="col">
                 <strong ng-bind="friend.name"></strong><br>{{ friend.email }}
