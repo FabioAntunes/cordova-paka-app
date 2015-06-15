@@ -2,19 +2,13 @@
 angular.module('controllers')
 .controller('AppCtrl', ['$scope', '$state', '$ionicModal','ExpenseFctr', 'DBFctr', function($scope, $state, $ionicModal, ExpenseFctr, DBFctr) {
   $scope.data = DBFctr.getData;
-  $scope.expense = {
-    category: '1',
-    value: 15,
-    date: new Date(),
-    description: 'Dentista',
-    share: true
-  };
+  $scope.expense = _resetExpense();
   
 
   $scope.doRefresh = function() {
     DBFctr.loadData().finally(function() {
-       $scope.$broadcast('scroll.refreshComplete');
-     });
+      $scope.$broadcast('scroll.refreshComplete');
+    });
   };
 
   $scope.menuIsEnabled = function() {
@@ -39,23 +33,31 @@ angular.module('controllers')
     $scope.modal.hide();    
     
     if($scope.expense.share){
-      $scope.me = {
-        expenseValue: $scope.expense.value
-      }
+
       $scope.modalShare.show();
 
     }else{
-      ExpenseFctr.insertExpense({
-        value: $scope.expense.value,
-        description: $scope.expense.description,
-        date: $scope.expense.date,
-      }, $scope.data.categories[$scope.expense.category]);
+      ExpenseFctr.insertExpense($scope.expense);
 
-      $scope.expense = {
-        category: null,
-        value: null,
-        description: null
-      }
+      $scope.expense = _resetExpense();
+    }
+
+  };
+
+  $scope.editExpense = function(expense){
+    $scope.modal.show();
+    $scope.expense = expense;
+    $scope.expense.share = expense.friends.length > 1;
+    $scope.expense.update = true;
+    
+    if($scope.expense.share){
+
+      $scope.modalShare.show();
+
+    }else{
+      ExpenseFctr.insertExpense($scope.expense);
+
+      $scope.expense = _resetExpense();
     }
 
   };
@@ -64,4 +66,16 @@ angular.module('controllers')
     $scope.modalShare.hide();
     $scope.modal.show(); 
   };
+
+  function _resetExpense(){
+    return {
+      category: {},
+      value: null,
+      date: new Date(),
+      description: null,
+      friends: [],
+      share: false,
+      update: false
+    };
+  }
 }]);

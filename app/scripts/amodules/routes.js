@@ -87,8 +87,9 @@ angular.module('routes', [])
 
   $httpProvider.interceptors.push(['$q', 'localStorageService', '$injector', function ($q, localStorageService, $injector) {
     function getToken(config){
-      if (localStorageService.get('token')) {
-        config.headers.Authorization = 'Bearer ' + localStorageService.get('token');
+      var user = localStorageService.get('token');
+      if (user) {
+        config.headers.Authorization = 'Bearer ' + user.token;
       }
 
       return config;

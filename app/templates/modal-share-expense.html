@@ -4,24 +4,23 @@
       <button class="button button-icon button-clear ion-android-close" ng-click="closeModalShare()"></button>
     </ion-header-bar>
   <ion-content class="expense-modal">
-    <div class="list">
+    
       <label class="item item-input">
-        <i class="icon ion-search placeholder-icon"></i>
-        <input type="text"  ng-model="sMod.search" placeholder="Search your friends" required ng-focus="triggerPopover($event)" ng-keyup="triggerPopover($event)" ng-blur="triggerPopover($event)">
+        <ion-autocomplete placeholder="Search your friends" ng-model="sMod.autoSearch" multiple-select="true" items-method="filterFriends(query)" item-view-value-key="name" items-clicked-method="clickedMethod(callback)" items-removed-method="removedMethod(callback)"/>
       </label>
-    </div>
+    
     <ion-toggle ng-change="calcEqual()" ng-model="sMod.equal" toggle-class="toggle-balanced">Equal amount?</ion-toggle>
-    <ion-list can-swipe="sMod.sFriends.length > 1">        
-      <ion-item ng-repeat="sFriend in sMod.sFriends track by sFriend.id">
+    <ion-list can-swipe="expense.friends.length > 1">        
+      <ion-item ng-repeat="sFriend in expense.friends track by sFriend.id">
         <div class="row">
           <div class="col" ng-bind="sFriend.name"></div>
-          <div class="col text-right" ng-bind="sMod.sFriends[$index].expenseValue  + '€'"></div>
+          <div class="col text-right" ng-bind="expense.friends[$index].expenseValue  + '€'"></div>
         </div>
         <div class="row" ng-show="!sMod.equal">
           <div class="col">
             <div class="item range range-assertive">
               <i class="icon ion-android-remove" ng-click="incDec($index, false)"></i>
-              <input type="range" ng-model="sMod.sFriends[$index].expenseValue" step="0.01" min ="0" max ="{{ expense.value }}" value="{{ sMod.sFriends[$index].expenseValue }}" ng-change="calcDiff($index)">
+              <input type="range" ng-model="expense.friends[$index].expenseValue" step="0.01" min ="0" max ="{{ expense.value }}" value="{{ expense.friends[$index].expenseValue }}" ng-change="calcDiff($index)">
               <i class="icon ion-android-add" ng-click="incDec($index, true)"></i>
             </div>
           </div>
@@ -29,11 +28,14 @@
         <ion-option-button class="button icon-left ion-android-delete button-assertive" ng-click="removeFriend($index)" ng-if="$index !== 0">
           Delete
         </ion-option-button>
-        <ion-option-button class="button icon-left ion-android-create button-positive" ng-click="edit($index)" ng-if="!sMod.equal && sMod.sFriends.length > 1">
+        <ion-option-button class="button icon-left ion-android-create button-positive" ng-click="edit($index)" ng-if="!sMod.equal && expense.friends.length > 1">
             Edit
         </ion-option-button>
       </ion-item>
     </ion-list>
+    <label class="item">
+      <button class="button button-block button-positive" type="submit" ng-disabled="expense.friends.length > 1">Add</button>
+    </label>
   </ion-content>
 </ion-view>
 

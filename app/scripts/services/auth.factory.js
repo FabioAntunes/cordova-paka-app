@@ -1,7 +1,7 @@
 'use strict';
 angular.module('services')
 .factory('AuthFctr', ['ENV', 'localStorageService', 'UtilsFctr', 'ApiFctr', function (ENV, localStorageService, UtilsFctr, ApiFctr) {
-
+  var user = localStorageService.get('token');
   function _logout(){
     localStorageService.remove('token');
     UtilsFctr.redirectState('app.home', true);
@@ -48,6 +48,13 @@ angular.module('services')
     login: _login,
     register: _register,
     check: _check,
-    renewToken: _renewToken
+    renewToken: _renewToken,
+    userInfo: function(){
+      if(user){
+        return user;
+      }else{
+        return localStorageService.get('token');
+      }
+    }
   };
 }]);

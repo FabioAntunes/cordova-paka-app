@@ -38,6 +38,7 @@ angular.module('services')
       for (var i = 0; i < results.rows.length; i++) {
         _dbExpense = results.rows.item(i);
         category._total += _dbExpense.value * 100;
+        _dbExpense.category = category;
         category.expenses.push(_createExpense(_dbExpense));
       }
 

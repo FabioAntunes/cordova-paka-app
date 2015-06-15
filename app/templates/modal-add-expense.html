@@ -10,16 +10,15 @@
           <div class="list">
             <label class="item item-input item-select">
               <span class="input-label">Category</span>
-              <select ng-model="expense.category" required>
+              <select ng-model="expense.category.id" required ng-options="category.id as category.name for category in data.categories">
                 <option value="">Select one</option>
-                <option ng-repeat="category in data.categories" ng-bind="category.name" value="{{ $index }}"></option>
               </select>
             </label>
             <label class="item item-input item-floating-label">
               <span class="input-label">Value</span>
               <input type="number" min="0" step="0.01"  ng-model="expense.value" placeholder="Value" required>
             </label>
-            <label class="item item-input item-floating-label">
+            <label class="item item-input item-stacked-label">
               <span class="input-label">Date</span>
               <input type="date" ng-model="expense.date" placeholder="date" required>
             </label>
@@ -29,7 +28,7 @@
             </label>
             <ion-toggle ng-model="expense.share" toggle-class="toggle-balanced">Share it with friends?</ion-toggle>
             <label class="item">
-              <button class="button button-block button-positive" type="submit" ng-disabled="valueForm.$invalid">Add</button>
+              <button class="button button-block button-positive" type="submit" ng-disabled="valueForm.$invalid" ng-bind="expense.share ? 'Add friends' : 'Add'"></button>
             </label>
           </div>
         </form>
