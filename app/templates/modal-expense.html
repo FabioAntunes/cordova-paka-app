@@ -1,0 +1,70 @@
+<ion-modal-view ng-controller="ExpenseModalCtrl">
+  <ion-header-bar class="bar-positive">
+      <h1 class="title">{{ sMod.title }}</h1>
+      <button class="button button-icon button-clear ion-android-close" ng-click="modal.hide()"></button>
+    </ion-header-bar>
+  <ion-content class="expense-modal">
+    <div class="row">
+      <div class="col">
+        <form role="form" name="valueForm" novalidate ng-submit="saveExpense()">
+          <div class="list">
+            <label class="item item-input item-select">
+              <span class="input-label">Category</span>
+              <select ng-options="category._id as category.name for category in data.categories" ng-model="expense.category_id" required >
+                <option value="">Select one</option>
+              </select>
+            </label>
+            <label class="item item-input item-floating-label">
+              <span class="input-label">Value</span>
+              <input type="number" min="0" step="0.01"  ng-model="expense.value" placeholder="Value" required>
+            </label>
+            <label class="item item-input item-stacked-label">
+              <span class="input-label">Date</span>
+              <input type="date" ng-model="expense._date" placeholder="date" required>
+            </label>
+            <label class="item item-input item-floating-label">
+              <span class="input-label">Description</span>
+              <textarea placeholder="Description" ng-model="expense.description" rows="5"></textarea>
+            </label>
+            <ion-toggle ng-model="sMod.share" toggle-class="toggle-balanced">Share it with friends</ion-toggle>
+            <ion-toggle ng-change="calcEqual()" ng-model="sMod.equal" toggle-class="toggle-balanced" ng-show="sMod.share">Equal amount?</ion-toggle>
+
+            <label class="item item-input item-stacked-label" ng-show="sMod.share">
+              <span class="input-label">Sharing this expense with:</span>
+              
+              <ion-autocomplete placeholder="Search for a friend" ng-model="sMod.autoSearch" multiple-select="true" items-method="filterFriends(query)" item-view-value-key="name" items-clicked-method="clickedMethod(callback)" items-removed-method="removedMethod(callback)" model-to-item-method="modelToItemMethod(modelValue)"/>
+            </label>
+            
+            <ion-list can-swipe="expense.shared.length > 1" ng-show="sMod.share">        
+              <ion-item ng-repeat="sFriend in expense.shared track by sFriend.friend_id">
+                <div class="row">
+                  <div class="col" ng-bind="sFriend.name"></div>
+                  <div class="col text-right" ng-bind="expense.shared[$index].value  + '€'"></div>
+                </div>
+                <div class="row" ng-show="!sMod.equal">
+                  <div class="col">
+                    <div class="item range range-assertive">
+                      <i class="icon ion-android-remove" ng-click="incDec($index, false)"></i>
+                      <input type="range" ng-model="expense.shared[$index].value" step="0.01" min ="0" max ="{{ expense.value }}" value="{{ expense.shared[$index].value }}" ng-change="calcDiff($index)">
+                      <i class="icon ion-android-add" ng-click="incDec($index, true)"></i>
+                    </div>
+                  </div>
+                </div>
+                <ion-option-button class="button icon-left ion-android-delete button-assertive" ng-click="removeFriend($index)" ng-if="$index !== 0">
+                  Delete
+                </ion-option-button>
+                <ion-option-button class="button icon-left ion-android-create button-positive" ng-click="edit($index)" ng-if="!sMod.equal && expense.shared.length > 1">
+                    Edit
+                </ion-option-button>
+              </ion-item>
+            </ion-list>
+            <label class="item">
+              <button class="button button-block button-positive" type="submit" ng-disabled="valueForm.$invalid">Save</button>
+            </label>
+          </div>
+        </form>
+      </div>     
+    </div>
+  </ion-content>
+</ion-view>
+

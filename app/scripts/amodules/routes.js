@@ -46,15 +46,6 @@ angular.module('routes', [])
         }
       }
     })
-  .state('app.expenses', {
-    url: '/expenses',
-    views: {
-      'menuContent': {
-        templateUrl: 'templates/expenses.html',
-        controller: 'PlaylistsCtrl'
-      }
-    }
-  })
   .state('app.categories', {
     url: '/categories/:idCategory',
     views: {
@@ -64,8 +55,17 @@ angular.module('routes', [])
       }
     }
   })
+  .state('app.categories.expenses', {
+    url: '/expenses/:idExpense',
+    views: {
+      'menuContent': {
+        templateUrl: 'templates/expenses.html',
+        controller: 'ExpenseCtrl'
+      }
+    }
+  })
   .state('app.categorieslist', {
-    url: '/categories/list',
+    url: '/categorieslist',
     views: {
       'menuContent': {
         templateUrl: 'templates/categories.html',
@@ -83,16 +83,18 @@ angular.module('routes', [])
     }
   });
   // if none of the above states are matched, use this as the fallback
-  $urlRouterProvider.otherwise('/app/dashboard');
+  $urlRouterProvider.otherwise('/app/home');
 
-  $httpProvider.interceptors.push(['$q', 'localStorageService', '$injector', function ($q, localStorageService, $injector) {
+  $httpProvider.interceptors.push(['$q', 'DBFctr', '$injector', function ($q, DBFctr, $injector) {
     function getToken(config){
-      var user = localStorageService.get('token');
-      if (user) {
-        config.headers.Authorization = 'Bearer ' + user.token;
-      }
-
-      return config;
+      return  DBFctr.getAppUser().then(function(user){
+        if (user) {
+          config.headers.Authorization = 'Bearer ' + user.token;
+        }
+        return config
+      }).catch(function(){
+        return config;
+      });
     }
     return {
       'request': function (config) {
@@ -100,17 +102,17 @@ angular.module('routes', [])
         return getToken(config);
       },
       'responseError': function (response) {
-        if(response.status === 401){
-          var AuthFctr = $injector.get('AuthFctr');
-          return AuthFctr.renewToken().then(function(){
-            var $http = $injector.get('$http');
-            return $http(getToken(response.config));
-          }).catch(function(){
-            return $q.reject(response);
-          });
-        }
+        // if(response.status === 401){
+        //   var AuthFctr = $injector.get('AuthFctr');
+        //   return AuthFctr.renewToken().then(function(){
+        //     var $http = $injector.get('$http');
+        //     return $http(getToken(response.config));
+        //   }).catch(function(){
+        //     return $q.reject(response);
+        //   });
+        // }
         if (response.status === 403 || response.status === 400) {
-            localStorageService.remove('token');
+            DBFctr.logoutAppUser();
             $injector.get('UtilsFctr').redirectState('app.home', true);
             // return;
             console.log(response);
@@ -119,14 +121,4 @@ angular.module('routes', [])
       }
     };
   }]);
-})
-.run(['$state', '$rootScope', 'AuthFctr',function($state, $rootScope, AuthFctr) {
-    $rootScope.$on('$stateChangeStart', function(e, toState, toParams, fromState, fromParams) {
-      
-        if (!AuthFctr.check() && !~toState.name.indexOf('app.home') && !~toState.name.indexOf('app.login') && !~toState.name.indexOf('app.register')) {
-          // If logged out and transitioning to a logged in page:
-          e.preventDefault();
-          $state.go('app.home');
-        }
-    });
-}]);
+});

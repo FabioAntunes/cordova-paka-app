@@ -9,7 +9,7 @@
         </button>
       </ion-nav-buttons>
       <ion-nav-buttons side="right">
-        <button class="button button-icon button-clear ion-android-add" ng-click="modal.show()"></button>
+        <button class="button button-icon button-clear ion-android-add" ng-click="modalAdd()"></button>
       </ion-nav-buttons>
     </ion-nav-bar>
     <ion-nav-view name="menuContent"></ion-nav-view>
@@ -24,11 +24,14 @@
         <ion-item nav-clear menu-close ui-sref="app.dashboard">
           Dashboard
         </ion-item>
-        <ion-item nav-clear menu-close ui-sref="app.categories">
+        <ion-item nav-clear menu-close ui-sref="app.categorieslist">
           Categories
         </ion-item>
         <ion-item nav-clear menu-close ui-sref="app.wizard">
           Wizard
+        </ion-item>
+        <ion-item nav-clear menu-close ng-click="logout()">
+          Logout
         </ion-item>
       </ion-list>
     </ion-content>

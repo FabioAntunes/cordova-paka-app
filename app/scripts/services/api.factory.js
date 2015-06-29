@@ -15,7 +15,6 @@ angular.module('services')
   }
 
   function _logout(){
-    localStorageService.remove('token');
     UtilsFctr.redirectState('app.home', true);
   }
 

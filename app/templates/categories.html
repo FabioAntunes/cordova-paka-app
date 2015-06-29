@@ -1,8 +1,12 @@
 <ion-view view-title="Categories">
   <ion-content>
     <ion-list>
-      <ion-item ng-repeat="expense in expense" ui-sref="expense.detail({ id: expense.id })">
-        {{expense.description}}
+      <ion-item collection-repeat="category in data.categories" ng-click="categoryModal(category)" class="item item-icon-left item-button-right">
+      	<i class="icon ion-android-checkbox-blank" style="color: {{ category.color }}"></i>
+      	{{ category.name }}
+    	<button class="button button-small button-outline button-positive">
+      		<i class="icon ion-android-create"></i>
+	    </button>
       </ion-item>
     </ion-list>
   </ion-content>

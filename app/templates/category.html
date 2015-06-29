@@ -1,9 +1,9 @@
-<ion-view view-title="{{ category.name }}">
+<ion-view view-title="{{ data.categories[category_id].name }}">
   <ion-content>
     <ion-list>
-      <ion-item collection-repeat="expense in category.expenses" ng-click="editExpense(expense)">
+      <ion-item collection-repeat="expense in data.categories[category_id].expenses" ng-click="expenseModal(expense)" >
         <div class="row">
-         	<div class="col" ng-bind="expense.description"></div>
+         	<div class="col"><i class="icon ion-android-{{ expense.shared.length ? 'contacts balanced' : 'contact energized' }}"></i> {{ expense.description }}</div>
          	<div class="col text-right" >{{ expense.value | number:2 }} €</div>
          </div>
       </ion-item>

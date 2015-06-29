@@ -8,11 +8,11 @@
       <ion-item ng-repeat="category in data.categories" ui-sref="app.categories({ idCategory: $index })" repeat-last>
         <div class="row">
           <div class="col" ng-bind="category.name"></div>
-          <div class="col text-right">{{ category.total | number:2 }} €</div>
+          <div class="col text-right">{{ category.total/100 | number:2 }} €</div>
         </div>
         <div class="row">
           <div class="col">
-            <div class="value-bar" style="width: {{ hasFinished ? category.total * 100 / data.total : 0 }}%; background-color: {{ category.color }}">
+            <div class="value-bar" style="width: {{ data.hasFinished ? category.total / data.total * 100 : 0 }}%; background-color: {{ category.color }}">
             </div>
           </div>
         </div>

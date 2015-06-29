@@ -1,0 +1,38 @@
+<ion-modal-view ng-controller="CategoryModalCtrl">
+  <ion-header-bar class="bar-positive">
+      <h1 class="title">{{ sMod.title }}</h1>
+      <button class="button button-icon button-clear ion-android-close" ng-click="modalCat.hide()"></button>
+    </ion-header-bar>
+  <ion-content class="expense-modal">
+    <div class="row">
+      <div class="col">
+        <form role="form" name="categoryForm" id="categoryForm" novalidate ng-submit="saveCategory()">
+          <div class="list">
+            <label class="item item-input item-floating-label">
+              <span class="input-label">Name</span>
+              <input type="text" ng-model="category.name" placeholder="Name" required>
+            </label>
+            <div class="item item-input-inset">
+              <label class="item-input-wrapper">
+                <input type="text" placeholder="Color" ng-model="category.color" required>
+              </label>
+
+              <spectrum-colorpicker ng-model="category.color" options="{appendTo: 'parent'}" class="colorpicker-wrapper"></spectrum-colorpicker>
+
+              <button type="button" class="button button-small" ng-click="genRandomColor()">
+                Generate
+              </button>
+            </div>
+            <div class="item">
+              <div class="value-bar" style="background-color: {{ category.color }}"></div>
+            </div>
+            
+            <label class="item">
+              <button class="button button-block button-positive" type="submit" ng-disabled="categoryForm.$invalid">Save</button>
+            </label>
+          </div>
+        </form>
+      </div>     
+    </div>
+  </ion-content>
+</ion-view>

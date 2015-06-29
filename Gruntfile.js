@@ -72,7 +72,9 @@ module.exports = function (grunt) {
         constants: {
           ENV: {
             name: 'development',
-            api: 'http://'+ipAddress+':8000/api'
+            api: 'http://'+ipAddress+':8000/api/v2',
+            apiDB: 'http://'+ipAddress+':8000/api/sync',
+            db: 'http://'+ipAddress+':5984'
           }
         }
       },

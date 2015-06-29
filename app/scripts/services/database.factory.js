@@ -1,174 +1,298 @@
 'use strict';
 angular.module('services')
-.factory('DBFctr', ['$cordovaSQLite', 'ApiFctr', '$q', 'AuthFctr', '$filter', function ($cordovaSQLite, ApiFctr, $q, AuthFctr, $filter) {
-  var _db;
-  var _data = {
-    _total: 0,
+.factory('DBFctr', ['ENV','$q', '$window', function (ENV, $q, $window) {
+  var _dbUsers;
+  var localDB;
+  var remoteDB;
+  var _user = undefined;
+  var _categories = [];
+  var sync = false;
+  var data = {
     categories: [],
-    get total(){
-      return this._total / 100;
-    },
-    set total(value){
-      this._total += value;
-    }
+    categoryMap: {},
+    total: 0
   };
-  var syncWithAPI = true;
+  
 
+  function initDB() {
+    // Creates the database or opens if it already exists
+    // $window.PouchDB.debug.enable('*');
+    _dbUsers = new $window.PouchDB('users');
+    localDB = new $window.PouchDB('paka');
+    remoteDB = new $window.PouchDB(ENV.db+'/paka');
+  }
 
-  function _initDB () {
-    window.plugins.sqlDB.copy('paka.sqlite', function() {
-      _db = $cordovaSQLite.openDB('paka.sqlite');
-      if(AuthFctr.check()){
-        _loadData();
-      }
-    }, function(error) {
-      console.log('Warning = '+JSON.stringify(error));
-      _db = $cordovaSQLite.openDB('paka.sqlite');
-      if(AuthFctr.check()){
-        _loadData();
-      }
+  function login(user){
+    return remoteDB.login('email_'+user.email, user.password).then(function(user){
+      return addUser(user);
     });
   }
 
-  function _getCategoryExpenses(category){
-    return _execute('SELECT * FROM expenses WHERE category_id=?', [category.appId]).then(function(results) {
-      var _dbExpense;
-      category.expenses = [];
-      category._total = 0;
-      for (var i = 0; i < results.rows.length; i++) {
-        _dbExpense = results.rows.item(i);
-        category._total += _dbExpense.value * 100;
-        _dbExpense.category = category;
-        category.expenses.push(_createExpense(_dbExpense));
-      }
-
-      _data._total += category._total;
-      _data.categories.push(category);
-
-    });
-  }
-
-  function _loadData () {
-    _data.categories.length = 0;
-    _data._total = 0;
-
-    return _execute('SELECT * FROM categories').then(function(results) {
-      var _dbCategory;
-      var _dbPromises = [];
-      for (var i = 0; i < results.rows.length; i++) {
-        
-        _dbCategory = results.rows.item(i);
-        _dbCategory._total = _dbCategory.total;
-        Object.defineProperty(_dbCategory, 'total', { get: function () { return this._total / 100;},
-          set: function (value) { this._total += value; }});
-
-        _dbPromises.push(_getCategoryExpenses(_dbCategory));
-      }
-      return $q.all(_dbPromises)
-    }).then(function(){
-
-      if(syncWithAPI){
-        _syncDB();
-      }
-
-      return _data;
-
-    }).catch(function (err) {
-      console.log(error);
-      return _data;
-    });
-    
-  }
-
-  function _syncDB() {
-    
-    var dbPromises = [];
-
-    ApiFctr.getCategories().then(function(results){
-
-      //update or insert categories from the API request
-      for (var i = 0; i < results.data.length; i++) {
-        dbPromises.push(_insertUpdateCategory(results.data[i]));
-        for (var j = 0; j < results.data[i].expenses.length; j++) {
-          dbPromises.push(_insertUpdateExpense(results.data[i].expenses[j], results.data[i]));
+  function addUser(user){
+    user._id = user.name;
+    return $q.when(_dbUsers.get(user._id)
+      .catch(function (err) {
+        if (err.status === 404) { // not found!
+          return _dbUsers.post(user).then(function(doc){
+            return _dbUsers.get(doc.id);
+          });
+        } else { // hm, some other error
+          throw err;
         }
-      }
+      })
+      .then(function (doc) {
+        // update his age
+        doc._id = user.name;
+        // put him back
+        return _dbUsers.put(doc);
+      }).then(function () {
+        // fetch mittens again
+        return _dbUsers.get(user._id).then(function(doc){
+          _user = doc;
+          syncDB();
 
+          return _user;
+        });
+      })
+    );
+  }
 
-      //After all inserts/updates reload the new data from the database
-      $q.all(dbPromises).then(function(){
+  function getUser(user){
+    return $q.when(_dbUsers.get(user.id));
+  }
 
-        //Set syncWithAPI to false, since we already have synced and to prevent a loop of requests
-        syncWithAPI = false;
-        _loadData();
-      }, function() {
+  function getAppUser(){
+    if(_user){
+      return $q.when(_user);
+    }else{
+      return $q.when(
+        _dbUsers.allDocs({include_docs : true, limit: 1}).then(function (result) {
+          if (result.rows.length > 0) {
+            syncDB();
+            _user = result.rows[0].doc;
+            return result.rows[0].doc;
+          }else{
+            throw err;
+          }
+        })
+      );
+      
+    }
+  }
 
-        //Set syncWithAPI to false, since we already have synced and to prevent a loop of requests
-        syncWithAPI = false;
-        _loadData();
+  function logoutAppUser(){
+    return getAppUser().then(function (result) {
+        result._deleted = true;
+        remoteDB.logout();
+        // put him back
+        return _dbUsers.put(result);
+    })
+        
+  }
+
+  function syncDB(forceSync, $scope){
+    if(!sync || forceSync){
+      localDB.sync(remoteDB, {
+        retry: true,
+        filter: 'app/by_user',
+        query_params: { 'user': _user }
+      }).on('change', function (info) {
+        //
+        console.log(info);
+      }).on('paused', function () {
+        // replication paused (e.g. user went offline)
+        // loadData();
+      }).on('active', function () {
+        // replicate resumed (e.g. user went back online)
+      }).on('denied', function (info) {
+        // a document failed to replicate, e.g. due to permissions
+        console.log(info);
+      }).on('complete', function (info) {
+        // handle complete
+        console.log(info);
+        if($scope){
+          loadData().finally(function(){
+            $scope.$broadcast('scroll.refreshComplete');
+          });
+        }else{
+          loadData();          
+        }
+      }).on('error', function (err) {
+        // handle error
+        console.log(err);
+        if($scope){
+          loadData().finally(function(){
+            $scope.$broadcast('scroll.refreshComplete');
+          });
+        }else{
+          loadData();          
+        }
       });
 
-    });
-
+      sync = true;
+    }
   }
 
-  function _insertUpdateCategory(category){
-      return _execute(
-          'INSERT OR REPLACE INTO categories (appId, id,name, color) VALUES ((select appId from categories where id = ?),?, ?, ?)',
-          [category.id, category.id, category.name, category.color]);
+  function getCategories(){
+    return $q.when(
+      localDB.query('categories/by_user', {
+        startkey: [_user._id], 
+        endkey: [_user._id, {}],
+        include_docs: true
+      })
+    );
   }
 
-  function _insertUpdateExpense(expense, category){
-    return _execute(
-          'INSERT OR REPLACE INTO expenses (appId, id, value, description, category_id, date) VALUES ((select appId from expenses where id = ?), ?, ?, ?, ?, ?)',
-          [expense.id, expense.id, expense.value, expense.description, category.appId, expense.date]);
+  function getFriends(){
+    return $q.when(
+      localDB.query('friends/by_user', {
+        startkey: [_user._id], 
+        endkey: [_user._id, {}],
+        include_docs: true
+      })
+    );
   }
 
-  function _persistExpense(expense, category){
-    return _execute('INSERT INTO expenses (id, value, description, category_id, date) VALUES (?, ?, ?, ?, ?)',
-        [expense.id, expense.value, expense.description, category.appId, expense.date]);
+  function getExpenses(){
+    var dateObj = new Date();
+    var year = dateObj.getUTCFullYear();
+    var month = dateObj.getUTCMonth() + 1;
+    return $q.when(
+      localDB.query('expenses/by_date', {
+        startkey: [_user._id, [year, month,null]], 
+        endkey: [_user._id, [year, month, 31], {}],
+        include_docs: true
+      })
+    );
   }
 
-  function _getCategory(idCategory){
-    return _data.categories.length ? _data.categories[idCategory] : {};
+  function addDocument(document){
+    return $q.when(getAppUser().then(function(user){
+      document.user_id = user._id;
+      localDB.post(document)})
+    );
   }
 
-  function _execute(query, params){
-    if (typeof params === 'undefined') { params = []; }
-
-    return $cordovaSQLite.execute(_db, query, params);
+  function updateDocument(document){
+    return $q.when(getAppUser().then(function(user){
+      document.user_id = user._id;
+      localDB.put(document)})
+    );
+    return $q.when(localDB.put(document));
   }
 
-  function _createExpense(dbExpense){
-    return {
-      appId:  dbExpense.appId,
-      id:  dbExpense.id,
-      _value:  dbExpense.value * 100,
-      get value(){
-        return this._value / 100;
-      }, 
-      description:  dbExpense.description, 
-    };
+  function loadData(){
+
+    data.categories = [];
+    data.friends = [];
+    data.categoryMap = {};
+    data.total = 0;
+
+    return $q.when(getAppUser().then(function(user){
+      _user = user;
+      
+      return getCategories().then(function(results){
+        if (results.rows.length > 0) {
+          for (var i = 0; i < results.rows.length; i++) {
+            results.rows[i].doc.expenses = [];
+            results.rows[i].doc.total = 0;
+            data.categories.push(results.rows[i].doc);
+            data.categoryMap[results.rows[i].doc._id] = i;
+          }
+          return data;
+        }else{
+          return [];
+        }
+      }).then(function(){
+        return getFriends();
+      }).then(function(friends){
+        if (friends.rows.length > 0) {
+          for (var i = 0; i < friends.rows.length; i++) {
+            friends.rows[i].doc.friend_id = friends.rows[i].doc._id;
+            data.friends.push(friends.rows[i].doc);
+          }
+          return data;
+        }else{
+          return [];
+        }
+      }).then(function(){
+        return getExpenses();
+      }).then(function(expenses){
+        if (expenses.rows.length > 0) {
+          var lastExpense = false;
+          var shared;
+          for (var i = 0; i < expenses.rows.length; i++) {
+
+            if(!expenses.rows[i].doc){
+
+              shared = lastExpense.shared[expenses.rows[i].key[4]];
+              shared.type = 'me';
+              shared.name = 'Me';
+              lastExpense.shared[expenses.rows[i].key[4]] = shared;
+
+              continue;
+
+            }
+
+            if(expenses.rows[i].doc.type === 'expense'){
+                expenses.rows[i].doc.shared = expenses.rows[i].doc.shared ? expenses.rows[i].doc.shared : [];
+                
+                if(lastExpense){
+                  data.categories[data.categoryMap[lastExpense.category_id]].expenses.push(lastExpense);
+                  data.categories[data.categoryMap[lastExpense.category_id]].total +=  lastExpense.value * 100;
+                  data.total +=  lastExpense.value * 100;
+                }
+                
+                lastExpense = expenses.rows[i].doc;
+
+                continue;
+            }
+
+            if(expenses.rows[i].doc.type === 'friend'){
+
+                shared = lastExpense.shared[expenses.rows[i].key[4]];
+                shared.type = 'friend';
+                shared.name = expenses.rows[i].doc.name;
+                shared.email = expenses.rows[i].doc.email;
+                lastExpense.shared[expenses.rows[i].key[4]] = shared;
+
+                continue;
+            }
+          }
+
+          data.categories[data.categoryMap[lastExpense.category_id]].expenses.push(lastExpense);
+          data.categories[data.categoryMap[lastExpense.category_id]].total +=  lastExpense.value * 100;
+          data.total +=  lastExpense.value * 100;
+
+          return data;
+        }else{
+          return [];
+        }
+        
+      }).catch(function(err){
+        console.log(err);
+      });
+    }));
   }
 
-  function _appendExpense(expense, categoryId){
-    expense = _createExpense(expense);
-    for (var i = _data.categories.length - 1; i >= 0; i--) {
-      if(_data.categories[i].appId === categoryId){
-        _data.total = expense._value;
-        _data.categories[i].total = expense._value;
-        _data.categories[i].expenses.push(expense);
-      }
-    };
+  function destroyDB(){
+    _dbUsers.destroy();
+    localDB.destroy();
   }
 
   return {
-    initDB: _initDB,
-    getData: _data,
-    getCategory: _getCategory,
-    execute: _execute,
-    loadData: _loadData,
-    persistExpense: _persistExpense,
-    appendExpense: _appendExpense
+    initDB: initDB,
+    syncDB: syncDB,
+    destroyDB: destroyDB,
+    loadData: loadData,
+    addUser: addUser,
+    addDocument: addDocument,
+    updateDocument: updateDocument,
+    getData: data,
+    getAppUser: getAppUser,
+    getUser: getUser,
+    getFriends: getFriends,
+    login: login,
+    logoutAppUser: logoutAppUser
   };
 }]);

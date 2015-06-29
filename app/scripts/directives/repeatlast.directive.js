@@ -6,10 +6,10 @@ angular.module('directives')
       // iteration is complete, do whatever post-processing
       // is necessary
       $timeout(function(){
-      	scope.hasFinished = true;
+      	scope.data.hasFinished = true;
       }, 1000);
     }else{
-      scope.hasFinished = false;
+      scope.data.hasFinished = false;
     }
   };
 }]);
