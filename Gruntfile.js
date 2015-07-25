@@ -7,21 +7,21 @@ var cordovaCli = require('cordova');
 var spawn = process.platform === 'win32' ? require('win-spawn') : require('child_process').spawn;
 var os = require('os');
 var ifaces = os.networkInterfaces();
-var ipAddress;
+var ipAddress = 'fabioantunes.me';
 
-Object.keys(ifaces).forEach(function (ifname) {
+// Object.keys(ifaces).forEach(function (ifname) {
 
-  ifaces[ifname].forEach(function (iface) {
-    if ('IPv4' !== iface.family || iface.internal !== false) {
-      // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
-      return;
-    }
+//   ifaces[ifname].forEach(function (iface) {
+//     if ('IPv4' !== iface.family || iface.internal !== false) {
+//       // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
+//       return;
+//     }
 
-    if(~ifname.indexOf('wlan')){
-      ipAddress = iface.address;
-    }
-  });
-});
+//     if(~ifname.indexOf('wlan')){
+//       ipAddress = iface.address;
+//     }
+//   });
+// });
 
 
 module.exports = function (grunt) {
@@ -117,7 +117,7 @@ module.exports = function (grunt) {
       options: {
         port: 9000,
         // Change this to '0.0.0.0' to access the server from outside.
-        hostname: 'localhost'
+        hostname: '0.0.0.0'
       },
       dist: {
         options: {

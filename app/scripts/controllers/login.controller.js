@@ -2,7 +2,7 @@
 angular.module('controllers')
 .controller('LoginCtrl', ['$scope', 'AuthFctr', function($scope, AuthFctr) {
   // Form data for the login modal
-  $scope.user = {name: '', email: 'fabioantuness@gmail.com', password: 'paka'};
+  $scope.user = {name: '', email: '', password: ''};
 
   // Perform the login action when the user submits the login form
   $scope.doLogin = function() {
